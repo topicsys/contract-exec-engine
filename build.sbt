@@ -25,6 +25,7 @@ scalacOptions += "-Xexperimental"
 
 exportJars := true
 
+// 注意：在 sbt 1.+版本，如果增加新包，必须置为false, 否则不会去网络下载。
 offline := true
 
 // 解决生成文档报错导致 jitpack.io 出错的问题。
@@ -32,10 +33,13 @@ publishArtifact in packageDoc := false
 
 // 如果要用 jitpack 打包的话就加上，打完了再注掉。
 resolvers += "jitpack" at "https://jitpack.io"
+resolvers += Resolver.mavenCentral
 
 libraryDependencies ++= Seq(
   "com.github.dedge-space" % "scala-lang" % "b4af0e13e2",
   "com.github.dedge-space" % "reflow" % "95c6e6ee49",
+
+  "org.ow2.asm" % "asm" % "6.2",
 
   "junit" % "junit" % "[4.12,)" % Test,
   "org.scalatest" %% "scalatest" % "3.2.0-SNAP7" % Test
