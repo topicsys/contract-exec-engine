@@ -40,6 +40,7 @@ libraryDependencies ++= Seq(
   "com.github.dedge-space" % "reflow" % "95c6e6ee49",
 
   "org.ow2.asm" % "asm" % "6.2",
+  "org.apache.bcel" % "bcel" % "6.2",
 
   "junit" % "junit" % "[4.12,)" % Test,
   "org.scalatest" %% "scalatest" % "3.2.0-SNAP7" % Test
