@@ -41,5 +41,6 @@ class Dsl {
   }
 
   org.objectweb.asm.Opcodes.ALOAD
+  // scala.tools.asm.Opcodes.ALOAD
   org.apache.bcel.Const.ALOAD
 }
