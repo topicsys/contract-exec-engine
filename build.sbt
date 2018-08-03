@@ -34,12 +34,20 @@ publishArtifact in packageDoc := false
 // 如果要用 jitpack 打包的话就加上，打完了再注掉。
 resolvers += "jitpack" at "https://jitpack.io"
 resolvers += Resolver.mavenCentral
+//resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= Seq(
   "com.github.dedge-space" % "scala-lang" % "b4af0e13e2",
   "com.github.dedge-space" % "reflow" % "95c6e6ee49",
 
   "org.ow2.asm" % "asm" % "6.2",
+  "org.ow2.asm" % "asm-util" % "6.2",
+  "org.ow2.asm" % "asm-commons" % "6.2",
+  "org.ow2.asm" % "asm-tree" % "6.2",
+  "org.ow2.asm" % "asm-analysis" % "6.2",
+  // 上述 asm 库对应的 scala 版本替代品。不过包名也都改了：scala.tools.asm。
+  // 但实际上，只是复制过去了代码，所以还是别用了。
+  // "org.scala-lang.modules" % "scala-asm" % "6.2.0-scala-2",
   "org.apache.bcel" % "bcel" % "6.2",
 
   "junit" % "junit" % "[4.12,)" % Test,
