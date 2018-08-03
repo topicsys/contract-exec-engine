@@ -22,17 +22,13 @@
  * SOFTWARE.
  */
 
-package systems.topic.cee
+package systems.topic.lee
+
+import hobby.chenai.nakam.lang.J2S.NonNull
 
 /**
   * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 31/07/2018
+  * @version 1.0, 01/08/2018
   */
-class Dsl {
-  val value = 12345
-
-  def abcd(counter: GasCounter): Boolean = {
-    counter.++
-    counter.isOutOfGas
-  }
-}
+class LogicExecEngineRuntimeException(message: String, cause: Throwable = null)
+  extends RuntimeException(if (cause.isNull) null else cause.toString, cause)

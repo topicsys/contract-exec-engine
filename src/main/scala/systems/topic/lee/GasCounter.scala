@@ -22,12 +22,38 @@
  * SOFTWARE.
  */
 
-package systems.topic.cee
+package systems.topic.lee
 
-import hobby.chenai.nakam.lang.J2S.NonNull
+import java.util.concurrent.atomic.AtomicLong
+import hobby.chenai.nakam.basis.TAG.ThrowMsg
+import systems.topic.lee.GasCounter.OutOfGasException
 
 /**
+  * 虽然设计上，只用于单线程（不同线程需要独立创建实例），但用于多线程也是安全的。
+  *
   * @author Chenai Nakam(chenai.nakam@gmail.com)
   * @version 1.0, 01/08/2018
   */
-class LogicExecEngineException(message: String, cause: Throwable = null) extends RuntimeException(if (cause.isNull) null else cause.toString, cause)
+class GasCounter(val limit: Long) {
+  require(limit >= 0)
+  private val counter = new AtomicLong(0)
+
+  @throws[OutOfGasException]
+  def ++ : Long = this + 1
+
+  @throws[OutOfGasException]
+  def +(i: Int): Long = {
+    val count = counter.addAndGet(i)
+    require(count > 0)
+    if (count > limit) throw new OutOfGasException(count, limit, s"`GAS` count: $count, limit: $limit.".tag)
+    count
+  }
+
+  def count: Long = counter.get
+
+  def isOutOfGas: Boolean = count > limit
+}
+
+object GasCounter {
+  class OutOfGasException(val count: Long, val limit: Long, message: String, cause: Throwable = null) extends LogicExecEngineRuntimeException(message, cause)
+}

@@ -22,36 +22,13 @@
  * SOFTWARE.
  */
 
-package systems.topic.cee
-
-import java.util.concurrent.atomic.AtomicLong
-import hobby.chenai.nakam.basis.TAG.ThrowMsg
-import systems.topic.cee.GasCounter.OutOfGasException
+package systems.topic.lee.lib
 
 /**
-  * 虽然设计上，只用于单线程（不同线程需要独立创建实例），但用于多线程也是安全的。
+  * 货币的基本功能。包括转账，抗上/下溢出等常见漏洞。
   *
   * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 01/08/2018
+  * @version 1.0, 31/07/2018
   */
-class GasCounter(val limit: Long) {
-  require(limit >= 0)
-  private val counter = new AtomicLong(0)
-
-  def ++ : Long = this + 1
-
-  def +(i: Int): Long = {
-    val count = counter.addAndGet(i)
-    require(count > 0)
-    if (count > limit) throw new OutOfGasException(count, limit, s"`GAS` count: $count, limit: $limit.".tag)
-    count
-  }
-
-  def count: Long = counter.get
-
-  def isOutOfGas: Boolean = count > limit
-}
-
-object GasCounter {
-  class OutOfGasException(val count: Long, val limit: Long, message: String, cause: Throwable = null) extends LogicExecEngineException(message, cause)
+class Token {
 }

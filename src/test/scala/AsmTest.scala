@@ -1,6 +1,6 @@
 import org.objectweb.asm._
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
-import systems.topic.cee.Dsl
+import systems.topic.lee.Dsl
 
 import scala.reflect.ClassTag
 
@@ -11,23 +11,6 @@ import scala.reflect.ClassTag
 class AsmTest extends /*AsyncFeatureSpec*/ FeatureSpec with GivenWhenThen with BeforeAndAfter with BeforeAndAfterAll {
   override protected def beforeAll(): Unit = {
   }
-
-  //  示例：
-  //  Feature("异步执行代码") {
-  //    Scenario("也可以这样写") {
-  //      Given("一段代码")
-  //      lazy val someCodes: () => String = () => {
-  //        // do something ...
-  //        Thread.sleep(10)
-  //        outputStr
-  //      }
-  //      When("提交")
-  //      val future = Reflow.submit(someCodes())(SHORT)
-  //      Then("代码被异步执行")
-  //      info("输出：" + future.get)
-  //      assertResult(outputStr)(future.get)
-  //    }
-  //  }
 
   def printClazz[T](implicit tag: ClassTag[T]): Unit = {
     println()

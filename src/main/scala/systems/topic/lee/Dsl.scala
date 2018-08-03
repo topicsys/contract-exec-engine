@@ -22,13 +22,24 @@
  * SOFTWARE.
  */
 
-package systems.topic.cee.lib
+package systems.topic.lee
 
 /**
-  * 货币的基本功能。包括转账，抗上/下溢出等常见漏洞。
-  *
   * @author Chenai Nakam(chenai.nakam@gmail.com)
   * @version 1.0, 31/07/2018
   */
-class Token {
+class Dsl {
+  val value = 12345
+
+  abcd(new GasCounter(100))
+
+  def abcd(counter: GasCounter): Boolean = {
+    //    counter.++
+    if (counter.++ / 2 == 0)
+      counter.isOutOfGas
+    else false
+  }
+
+  org.objectweb.asm.Opcodes.ALOAD
+  org.apache.bcel.Const.ALOAD
 }
