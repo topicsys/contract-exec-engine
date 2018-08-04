@@ -43,4 +43,14 @@ class Dsl {
   org.objectweb.asm.Opcodes.ALOAD
   // scala.tools.asm.Opcodes.ALOAD
   org.apache.bcel.Const.ALOAD
+
+  class MyCLoader extends ClassLoader {
+    // jar 文件的加载是这么来的：sun.net.www.protocol.jar.JarURLConnection.JarURLInputStream.JarURLInputStream
+
+    override def findClass(name: String) = super.findClass(name)
+
+    override def findResource(name: String) = super.findResource(name)
+
+    override def findResources(name: String) = super.findResources(name)
+  }
 }
