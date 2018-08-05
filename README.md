@@ -1,4 +1,7 @@
 # logic-exec-engine
+
+[![Join the chat at https://gitter.im/topicsys/logic-exec-engine](https://badges.gitter.im/topicsys/logic-exec-engine.svg)](https://gitter.im/topicsys/logic-exec-engine?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 **Smart contract** and **generic logic** execution engine.
 
 
