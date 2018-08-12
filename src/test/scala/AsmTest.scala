@@ -1,7 +1,7 @@
 import org.objectweb.asm._
-import org.objectweb.asm.util.Printer
+import org.objectweb.asm.util.{CheckClassAdapter, Printer, TraceClassVisitor}
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FeatureSpec, GivenWhenThen}
-import systems.topic.lee.Dsl
+import systems.topic.lee.{Dsl, GasCounter}
 
 import scala.reflect.ClassTag
 
@@ -18,9 +18,19 @@ class AsmTest extends /*AsyncFeatureSpec*/ FeatureSpec with GivenWhenThen with B
     println()
     println("[printClazz]===>>>" + tag.runtimeClass.getName)
     println()
-    val stream = tag.runtimeClass.getResourceAsStream(tag.runtimeClass.getSimpleName + ".class")
+    val stream = // classOf[Dsl].getResourceAsStream("/" + tag.runtimeClass.getName.replace('.', '/') + ".class")
+    tag.runtimeClass.getResourceAsStream(tag.runtimeClass.getSimpleName + ".class")
     val cr = try new ClassReader(stream) finally stream.close()
-    cr.accept(new ClassPrinter, 0)
+
+    val cw = new ClassWriter(0)
+
+    // Textifier 默认，用于输出解析的内容。
+    // ASMifier 用于输出要填写的ASM代码内容。
+    val cca = new CheckClassAdapter(cw)
+    val tcv = new TraceClassVisitor(cca, /*new ASMifier,*/ System.console().writer())
+    cr.accept(tcv, 0)
+
+    cw.toByteArray
   }
 
   Feature("ASM") {
@@ -33,10 +43,12 @@ class AsmTest extends /*AsyncFeatureSpec*/ FeatureSpec with GivenWhenThen with B
       // 路径前面不能有："/"。
 
       println()
-      println(ClassLoader.getSystemResourceAsStream(classOf[String /*JDK中的包*/ ].getName.replace('.', '/') + ".class"))
+      //      println(ClassLoader.getSystemResourceAsStream(classOf[Object /*JDK中的包*/ ].getName.replace('.', '/') + ".class"))
 
-      printClazz[Bazhang]
-      printClazz[Dsl]
+      //      printClazz[Bazhang]
+      //      printClazz[String]
+      printClazz[Object]
+      //      printClazz[Dsl]
       // TODO: 必须重启，否则更改的类不会刷新。
       // System.exit(0)
 
@@ -72,13 +84,21 @@ class MethodPrinter(mv: MethodVisitor) extends MethodVisitor(Opcodes.ASM6, mv) {
 }
 
 //静态内部类
-class Bazhang(a: Int) {
+class Bazhang(gc: GasCounter, a: Int) {
   private def f(n: Int, s: String, arr: Array[Int]): Int = {
+
+    val o = new Object
+    o.equals()
+    o.hashCode()
+
+    gc.++
     (new Dsl).value
   }
 
   private def hi(a: Double, b: List[String]): List[Int] = {
+    gc.++
     val label = new Label
+    gc.++
     5 :: Nil
   }
 }

@@ -22,41 +22,12 @@
  * SOFTWARE.
  */
 
-package systems.topic.lee
+package systems.topic
+
+import systems.topic.lee.lib.ClazzUtil.GetPackage
 
 /**
   * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 31/07/2018
+  * @version 1.0, 12/08/2018
   */
-class Dsl {
-  val value = 12345
-
-  abcd(new GasCounter(100))
-
-  @throws[InterruptedException]
-  def abcd(counter: GasCounter): Boolean = {
-    //    counter.++
-
-    try
-      Thread.sleep(1000)
-    catch {
-      case e: InterruptedException =>
-        e.printStackTrace()
-        throw e
-    } finally {
-      print("x")
-    }
-
-    xyz()
-
-    if (counter.++ / 2 == 0)
-      counter.isOutOfGas
-    else false
-  }
-
-  @native def xyz(): Unit
-
-  //  org.objectweb.asm.Opcodes.ALOAD
-  //   scala.tools.asm.Opcodes.ALOAD
-  //  org.apache.bcel.Const.ALOAD
-}
+package object lee extends GetPackage

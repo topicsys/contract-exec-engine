@@ -26,7 +26,10 @@ package systems.topic.lee
 
 import java.util.concurrent.atomic.AtomicLong
 import hobby.chenai.nakam.basis.TAG.ThrowMsg
+import hobby.wei.c.anno.proguard.Keep$
 import systems.topic.lee.GasCounter.OutOfGasException
+
+import scala.annotation.meta.getter
 
 /**
   * 虽然设计上，只用于单线程（不同线程需要独立创建实例），但用于多线程也是安全的。
@@ -34,13 +37,16 @@ import systems.topic.lee.GasCounter.OutOfGasException
   * @author Chenai Nakam(chenai.nakam@gmail.com)
   * @version 1.0, 01/08/2018
   */
-class GasCounter(val limit: Long) {
+@Keep$
+final class GasCounter(@(Keep$@getter) val limit: Long) {
   require(limit >= 0)
   private val counter = new AtomicLong(0)
 
+  @Keep$
   @throws[OutOfGasException]
   def ++ : Long = this + 1
 
+  @Keep$
   @throws[OutOfGasException]
   def +(i: Int): Long = {
     val count = counter.addAndGet(i)
@@ -49,11 +55,14 @@ class GasCounter(val limit: Long) {
     count
   }
 
+  @Keep$
   def count: Long = counter.get
 
+  @Keep$
   def isOutOfGas: Boolean = count > limit
 }
 
 object GasCounter {
+  @Keep$
   class OutOfGasException(val count: Long, val limit: Long, message: String, cause: Throwable = null) extends LogicExecEngineRuntimeException(message, cause)
 }

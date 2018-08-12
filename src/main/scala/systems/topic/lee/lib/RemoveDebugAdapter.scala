@@ -22,41 +22,21 @@
  * SOFTWARE.
  */
 
-package systems.topic.lee
+package systems.topic.lee.lib
+
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Opcodes.ASM6
 
 /**
+  * 本类重写的方法都是`debug`用途，不影响运行，可以删除。
+  *
   * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 31/07/2018
+  * @version 1.0, 06/08/2018
   */
-class Dsl {
-  val value = 12345
+class RemoveDebugAdapter(cv: ClassVisitor) extends ClassVisitor(ASM6, cv) {
+  override def visitSource(source: String, debug: String): Unit = {}
 
-  abcd(new GasCounter(100))
+  override def visitOuterClass(owner: String, name: String, desc: String): Unit = {}
 
-  @throws[InterruptedException]
-  def abcd(counter: GasCounter): Boolean = {
-    //    counter.++
-
-    try
-      Thread.sleep(1000)
-    catch {
-      case e: InterruptedException =>
-        e.printStackTrace()
-        throw e
-    } finally {
-      print("x")
-    }
-
-    xyz()
-
-    if (counter.++ / 2 == 0)
-      counter.isOutOfGas
-    else false
-  }
-
-  @native def xyz(): Unit
-
-  //  org.objectweb.asm.Opcodes.ALOAD
-  //   scala.tools.asm.Opcodes.ALOAD
-  //  org.apache.bcel.Const.ALOAD
+  override def visitInnerClass(name: String, outerName: String, innerName: String, access: Int): Unit = {}
 }

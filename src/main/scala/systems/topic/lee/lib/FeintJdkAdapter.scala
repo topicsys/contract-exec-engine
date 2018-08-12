@@ -22,41 +22,23 @@
  * SOFTWARE.
  */
 
-package systems.topic.lee
+package systems.topic.lee.lib
+
+import hobby.chenai.nakam.lang.J2S.{NonFlat$, NonNull}
+import org.objectweb.asm.{ClassVisitor, Opcodes}
+import systems.topic.feint.asm._
 
 /**
+  * 针对 JDK 的类不可以调用`ClassLoader`的`defineClass()`，需要通过伪装的方式更改。
+  *
   * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 31/07/2018
+  * @version 1.0, 12/08/2018
   */
-class Dsl {
-  val value = 12345
+class FeintJdkAdapter(cv: ClassVisitor) extends ClassVisitor(Opcodes.ASM6, cv) {
+  override def visit(version: Int, access: Int, name: String, signature: String, superName: String, interfaces: Array[String]): Unit = {
+    println(s"--->>> visit(access:$access, name:${name.feint}, sign:${if (signature.isNull) signature else signature.feint}," +
+      s" super:${superName.feint}, interfaces:${interfaces.map(_.feint).mkString$})")
 
-  abcd(new GasCounter(100))
-
-  @throws[InterruptedException]
-  def abcd(counter: GasCounter): Boolean = {
-    //    counter.++
-
-    try
-      Thread.sleep(1000)
-    catch {
-      case e: InterruptedException =>
-        e.printStackTrace()
-        throw e
-    } finally {
-      print("x")
-    }
-
-    xyz()
-
-    if (counter.++ / 2 == 0)
-      counter.isOutOfGas
-    else false
+    super.visit(version, access, name.feint, if (signature.isNull) signature else signature.feint, superName.feint, interfaces.map(_.feint))
   }
-
-  @native def xyz(): Unit
-
-  //  org.objectweb.asm.Opcodes.ALOAD
-  //   scala.tools.asm.Opcodes.ALOAD
-  //  org.apache.bcel.Const.ALOAD
 }
