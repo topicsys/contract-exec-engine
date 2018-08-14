@@ -33,7 +33,7 @@ import hobby.wei.c.log.Logger._
 import org.objectweb.asm.{ClassReader, ClassWriter}
 import sbt.io.IO
 import systems.topic.lee.{logger => log}
-import systems.topic.lee.lib.ClassLoader.{boot, inflated, count, loadClazzAsStream}
+import systems.topic.lee.lib.ClassLoader.{boot, count, inflated, loadClazzAsStream}
 import systems.topic.lee.lib.ClazzUtil.Name$Path
 
 import scala.language.implicitConversions
@@ -53,25 +53,18 @@ class ClassLoader(parent: java.lang.ClassLoader) extends AbsCLoaderJ(if (
   override def findClass(name: String) = {
     log.d("\n**********>>> findClass | %s | %s.", name.s, count.incrementAndGet)
     loadClazzAsStream(name) { in =>
-      try {
-        val data = IO.readBytes(in)
+      val data = IO.readBytes(in)
 
-        // TODO: hack it here!
+      // TODO: hack it here!
 
-        val cr = new ClassReader(data)
-        val cw = new ClassWriter(0)
-        cr.accept(new FeintJdkAdapter(cw), 0)
-        val bytes = cw.toByteArray
+      val cr = new ClassReader(data)
+      val cw = new ClassWriter(0)
+      cr.accept(new FeintJdkAdapter(cw), 0)
+      val bytes = cw.toByteArray
 
-        val clazz = defineClass(null, bytes, 0, bytes.length)
-        log.d("findClass | %s.", clazz)
-        clazz
-      } catch {
-        case e: Throwable => log.e(e)
-          throw e
-      } finally {
-        in.close()
-      }
+      val clazz = defineClass(null, bytes, 0, bytes.length)
+      log.d("findClass | %s.", clazz)
+      clazz
     }
   }
 
@@ -128,28 +121,25 @@ object ClassLoader extends TAG.ClassName {
 
   private[ClassLoader] lazy val inflated = new ConcurrentHashMap[String, Class[_]]
 
-  def loadClazzByStream[A, T](f: InputStream => A)(implicit tag: ClassTag[T]): A = {
-    // val input = tag.runtimeClass.getResourceAsStream(tag.runtimeClass.getSimpleName + `.clas`)
-    loadClazzAsStream(tag.runtimeClass.getName)(f)
-  }
+  @throws[ClassNotFoundException]
+  def loadClazzAsStream[A, T](f: InputStream => A)(implicit tag: ClassTag[T]): A = loadClazzAsStream(tag.runtimeClass.getName)(f)
 
+  @throws[ClassNotFoundException]
   def loadClazzAsStream[A](name: String)(f: InputStream => A): A = {
     import systems.topic.feint.deFeint
     import systems.topic.feint.asm.ImpFeint
     val dft = if (name.isPath) name.toAsmName.deFeint else if (name.isAsmName) name.deFeint else deFeint(name)
     val path = dft.toPath.substring(1) // 只有使用这种方式的时候不需要去掉开头的`/`: getClass.getResourceAsStream(path).
-    log.d("loadClazzByStream | name:%s, real:%s.", name.s, path.s)
+    log.d("loadClazzAsStream | name:%s, real:%s.", name.s, path.s)
     // 注意：以下两个`ClassLoader`的`parent`并没有接起来。详见上面的注释。
     var input = boot.getResourceAsStream(path)
-    log.d("loadClazzByStream | from loader[boot]stream:%s, res:%s.", input, boot.getResource(path))
+    log.d("loadClazzAsStream | from[boot] stream:%s, res:%s.", input, boot.getResource(path))
     if (input.isNull) {
       input = sys.getResourceAsStream(path)
-      log.d("loadClazzByStream | from loader[sys]stream:%s, res:%s.", input, sys.getResource(path))
+      log.d("loadClazzAsStream | from[sys] stream:%s, res:%s.", input, sys.getResource(path))
     }
-    try f(input) catch {
-      case e: Throwable => log.e(e)
-        throw e
-    } finally input.close()
+    if (input.isNull) throw new ClassNotFoundException(path)
+    try f(input) finally input.close()
   }
 
   implicit def clazz2Tag[A](clazz: Class[A]): ClassTag[A] = ClassTag(clazz)

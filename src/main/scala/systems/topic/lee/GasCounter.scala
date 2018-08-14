@@ -25,9 +25,8 @@
 package systems.topic.lee
 
 import java.util.concurrent.atomic.AtomicLong
-import hobby.chenai.nakam.basis.TAG.ThrowMsg
 import hobby.wei.c.anno.proguard.Keep$
-import systems.topic.lee.GasCounter.OutOfGasException
+import systems.topic.lee.GasCounter.GasOutOfLimitException
 
 import scala.annotation.meta.getter
 
@@ -43,15 +42,15 @@ final class GasCounter(@(Keep$@getter) val limit: Long) {
   private val counter = new AtomicLong(0)
 
   @Keep$
-  @throws[OutOfGasException]
+  @throws[GasOutOfLimitException]
   def ++ : Long = this + 1
 
   @Keep$
-  @throws[OutOfGasException]
+  @throws[GasOutOfLimitException]
   def +(i: Int): Long = {
     val count = counter.addAndGet(i)
     require(count > 0)
-    if (count > limit) throw new OutOfGasException(count, limit, s"`GAS` count: $count, limit: $limit.".tag)
+    if (count > limit) throw new GasOutOfLimitException(count, limit, s"[GAS out of LIMIT] count: $count, limit: $limit.")
     count
   }
 
@@ -64,5 +63,5 @@ final class GasCounter(@(Keep$@getter) val limit: Long) {
 
 object GasCounter {
   @Keep$
-  class OutOfGasException(val count: Long, val limit: Long, message: String, cause: Throwable = null) extends LogicExecEngineRuntimeException(message, cause)
+  class GasOutOfLimitException(val count: Long, val limit: Long, message: String) extends LogicExecEngineRuntimeException(message)
 }

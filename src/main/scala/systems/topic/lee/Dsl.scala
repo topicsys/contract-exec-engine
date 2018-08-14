@@ -31,11 +31,11 @@ package systems.topic.lee
 class Dsl {
   val value = 12345
 
-  abcd(new GasCounter(100))
+  abcd(new GasCounter(37620))
 
   @throws[InterruptedException]
   def abcd(counter: GasCounter): Boolean = {
-    counter.++
+    counter + 3763
 
     try
       Thread.sleep(10)
@@ -44,14 +44,15 @@ class Dsl {
         e.printStackTrace()
         throw e
     } finally {
-      print("x")
+      // println("x")
     }
 
     //    xyz()
 
-    if (counter.++ / 2 == 0)
-      counter.isOutOfGas
-    else false
+    //    if (counter.++ / 2 == 0)
+    //      counter.isOutOfGas
+    //    else false
+    true
   }
 
   @native def xyz(): Unit
