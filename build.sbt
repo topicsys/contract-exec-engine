@@ -37,8 +37,8 @@ resolvers += Resolver.mavenCentral
 //resolvers += Resolver.sonatypeRepo("releases")
 
 libraryDependencies ++= Seq(
-  "com.github.dedge-space" % "scala-lang" % "6fbee40d1a",
-  "com.github.dedge-space" % "reflow" % "9d450b6fa1",
+  "com.github.dedge-space" % "scala-lang" % "cc6be80562",
+  "com.github.dedge-space" % "reflow" % "ce62a901b1",
 
   "org.scala-sbt" %% "io" % "1.2.0",
 
