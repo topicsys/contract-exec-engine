@@ -31,4 +31,4 @@ import hobby.chenai.nakam.lang.J2S.NonNull
   * @version 1.0, 01/08/2018
   */
 class LogicExecEngineRuntimeException(message: String, cause: Throwable = null)
-  extends RuntimeException(if (cause.isNull) null else cause.toString, cause)
+  extends RuntimeException(if (cause.isNull) message else cause.toString, cause)

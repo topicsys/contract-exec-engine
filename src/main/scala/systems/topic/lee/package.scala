@@ -24,10 +24,15 @@
 
 package systems.topic
 
+import hobby.wei.c.log.LoggerJ
+import hobby.wei.c.reflow.Reflow
 import systems.topic.lee.lib.ClazzUtil.GetPackage
 
 /**
   * @author Chenai Nakam(chenai.nakam@gmail.com)
   * @version 1.0, 12/08/2018
   */
-package object lee extends GetPackage
+package object lee extends GetPackage {
+  lazy val logger = Reflow.logger
+  lazy val loggerJ = new LoggerJ(logger)
+}

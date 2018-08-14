@@ -35,10 +35,10 @@ class Dsl {
 
   @throws[InterruptedException]
   def abcd(counter: GasCounter): Boolean = {
-    //    counter.++
+    counter.++
 
     try
-      Thread.sleep(1000)
+      Thread.sleep(10)
     catch {
       case e: InterruptedException =>
         e.printStackTrace()
@@ -47,7 +47,7 @@ class Dsl {
       print("x")
     }
 
-    xyz()
+    //    xyz()
 
     if (counter.++ / 2 == 0)
       counter.isOutOfGas

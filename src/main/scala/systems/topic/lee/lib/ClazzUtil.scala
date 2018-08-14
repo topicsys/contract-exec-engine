@@ -105,7 +105,6 @@ object ClazzUtil {
   // <A:Ljava/lang/Object;>Ljava/lang/Object;Lscala/collection/mutable/Traversable<TA;>;Lscala/collection/Iterable<TA;>;
   val regex4Sig = "<\\w+(:|;)[>;]*|[;<>]+"
 
-  lazy val implantExceptedList = Seq(classOf[Object], classOf[Throwable], classOf[Exception],
-    classOf[InterruptedException]).map(_.getName) :+ systems.topic.lee.pkg
+  lazy val implantExceptedList = Seq(classOf[Object], classOf[Throwable], classOf[Exception]).map(_.getName) :+ systems.topic.lee.pkg
   lazy val asmImplantExcepted = implantExceptedList.map(_.toAsmName)
 }
