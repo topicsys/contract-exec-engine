@@ -25,69 +25,85 @@
 package systems.topic.lee.lib
 
 import java.io.InputStream
-import java.util.concurrent.ConcurrentHashMap
+import java.util
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.ConcurrentHashMap
 import hobby.chenai.nakam.basis.TAG
 import hobby.chenai.nakam.lang.J2S.NonNull
 import hobby.wei.c.log.Logger._
 import org.objectweb.asm.{ClassReader, ClassWriter}
 import sbt.io.IO
+import systems.topic.feint.ImpFeint
 import systems.topic.lee.{logger => log}
-import systems.topic.lee.lib.ClassLoader.{boot, count, inflated, loadClazzAsStream}
+import systems.topic.lee.lib.ClassLoader.{boot, count, feintMap, inflated, loadClazzAsStream}
 import systems.topic.lee.lib.ClazzUtil.Name$Path
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 
 /**
-  * 能够从 JDK 父类（如`java.lang.Object`等）完全隔离。
-  *
-  * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 12/08/2018
-  */
+ * 能够从 JDK 父类（如`java.lang.Object`等）完全隔离。
+ *
+ * @author Chenai Nakam(chenai.nakam@gmail.com)
+ * @version 1.0, 12/08/2018
+ */
 class ClassLoader(parent: java.lang.ClassLoader) extends AbsCLoaderJ(if (
   parent.isInstanceOf[ClassLoader] || !ClassLoader.inited) parent else boot) with TAG.ClassName {
   def this() = this(boot)
 
   @throws[ClassNotFoundException]
   override def findClass(name: String) = {
-    log.d("\n**********>>> findClass | %s | %s.", name.s, count.incrementAndGet)
-    loadClazzAsStream(name) { in =>
+    val bytes = loadClazzAsStream(name, this) { in =>
       val data = IO.readBytes(in)
+      if (name.isExcepted) {
+        log.d("\n**********>>> findClass[excepted] | %s | %s.", name.s, count.incrementAndGet)
+        data
+      } else {
+        log.d("\n**********>>> findClass | %s | %s.", name.s, count.incrementAndGet)
 
-      // TODO: hack it here!
+        // TODO: hack it here!
+        //  不仅要改`name`，类实体里面的`import`等也要改。
 
-      val cr = new ClassReader(data)
-      val cw = new ClassWriter(0)
-      cr.accept(new FeintJdkAdapter(cw), 0)
-      val bytes = cw.toByteArray
-
-      val clazz = defineClass(null, bytes, 0, bytes.length)
-      log.d("findClass | %s.", clazz)
-      clazz
+        val cr = new ClassReader(data)
+        val cw = new ClassWriter(0)
+        cr.accept(new FeintJdkAdapter(cw, feintMap), 0)
+        cw.toByteArray
+      }
     }
+    log.d("defineClass --->")
+    // `defineClass()`的时候会发起`loadClass()`的递归调用。
+    val clazz = defineClass(null, bytes, 0, bytes.length)
+    log.d("findClass | %s.", clazz)
+    clazz
   }
 
   @throws[ClassNotFoundException]
-  override def loadClass(name: String) = {
-    log.d("loadClass | %s | %s.", name.s, count.incrementAndGet)
+  override def loadClass(name0: String, resolve: Boolean) = {
+    val name = name0.deFeint
+    log.d("loadClass | name:%s, name.deFeint:%s | %s, %s.", name0.s, name.s, resolve, count.incrementAndGet)
     if (name.isExcepted) {
-      val clazz = super.loadClass(name)
+      val clazz = super.loadClass(name, resolve)
       log.d("loadClass.super | %s [DONE].\n\n", clazz)
       clazz
     } else {
       var loaded, prev: Class[_] = null
       getClassLoadingLock(name).synchronized {
-        // 不能在这里用`findLoadedClass()`，因为有可能会改类名使其不起作用。
-        loaded = inflated.get(name) // findLoadedClass(name)
-        if (loaded == null) {
-          loaded = findClass(name)
-          // 不可以用`computeIfAbsent()`，递归会造成死锁。
-          prev = inflated.putIfAbsent(name, loaded)
+        loaded = findLoadedClass(name)
+        if (loaded.isNull) {
+          val feint = feintMap.get(name)
+          if (feint.nonNull) loaded = inflated.get(feint)
+          if (loaded.isNull) {
+            loaded = findClass(name)
+            if (feint.nonNull) assert(feint == loaded.getName)
+            feintMap.putIfAbsent(name, loaded.getName)
+            // 不可以用`computeIfAbsent()`，递归会造成死锁。
+            prev = inflated.putIfAbsent(loaded.getName, loaded)
+            if (resolve) resolveClass(loaded)
+          }
         } else log.d("findLoadedClass | %s.", loaded)
       }
-      log.d("loadClass | %s [DONE].\n\n", if (prev.nonNull) prev else loaded)
-      if (prev.nonNull) prev else loaded
+      log.d("loadClass | loaded:%s, prev:%s, [DONE].\n\n", loaded, prev)
+      loaded
     }
   }
 
@@ -119,25 +135,18 @@ object ClassLoader extends TAG.ClassName {
   // 但有个大问题：它们再往上的`parent`并没有指向`sys`(AppClassLoader)，而是为`null`(sbt.internal.inc.classpath.DualLoader/NullLoader)。
   lazy val app = getClass.getClassLoader
 
-  private[ClassLoader] lazy val inflated = new ConcurrentHashMap[String, Class[_]]
+  private[ClassLoader] lazy val inflated = new util.HashMap[String, Class[_]]
+  private[ClassLoader] lazy val feintMap = new ConcurrentHashMap[String, String]
 
   @throws[ClassNotFoundException]
-  def loadClazzAsStream[A, T](f: InputStream => A)(implicit tag: ClassTag[T]): A = loadClazzAsStream(tag.runtimeClass.getName)(f)
-
-  @throws[ClassNotFoundException]
-  def loadClazzAsStream[A](name: String)(f: InputStream => A): A = {
-    import systems.topic.feint.deFeint
-    import systems.topic.feint.asm.ImpFeint
-    val dft = if (name.isPath) name.toAsmName.deFeint else if (name.isAsmName) name.deFeint else deFeint(name)
-    val path = dft.toPath.substring(1) // 只有使用这种方式的时候不需要去掉开头的`/`: getClass.getResourceAsStream(path).
+  def loadClazzAsStream[A](name: String, loader: ClassLoader)(f: InputStream => A): A = {
+    // 只有使用这种方式的时候不需要去掉开头的`/`: getClass.getResourceAsStream(path).
+    val path = name.toPath.substring(1)
     log.d("loadClazzAsStream | name:%s, real:%s.", name.s, path.s)
     // 注意：以下两个`ClassLoader`的`parent`并没有接起来。详见上面的注释。
-    var input = boot.getResourceAsStream(path)
-    log.d("loadClazzAsStream | from[boot] stream:%s, res:%s.", input, boot.getResource(path))
-    if (input.isNull) {
-      input = sys.getResourceAsStream(path)
-      log.d("loadClazzAsStream | from[sys] stream:%s, res:%s.", input, sys.getResource(path))
-    }
+    var input = loader.getParent.getResourceAsStream(path)
+    log.d("loadClazzAsStream | from[loader.getParent] stream:%s, res:%s.", input, boot.getResource(path))
+
     if (input.isNull) throw new ClassNotFoundException(path)
     try f(input) finally input.close()
   }

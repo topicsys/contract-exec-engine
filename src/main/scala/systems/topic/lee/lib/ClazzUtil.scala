@@ -27,9 +27,9 @@ package systems.topic.lee.lib
 import hobby.chenai.nakam.lang.J2S.char2String
 
 /**
-  * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 12/08/2018
-  */
+ * @author Chenai Nakam(chenai.nakam@gmail.com)
+ * @version 1.0, 12/08/2018
+ */
 object ClazzUtil {
   //org.objectweb.asm.Type.BOOLEAN_TYPE.getDescriptor
   implicit class Name$Path(np: String) {
@@ -71,15 +71,9 @@ object ClazzUtil {
       if (name.startsWith(/)) name.substring(1) else name
     }
 
-    @inline def isExcepted: Boolean = {
-      require(np.isName)
-      implantExceptedList.exists(np.startsWith)
-    }
+    @inline def isExcepted: Boolean = np.isName && implantExceptedList.exists(np.startsWith)
 
-    @inline def isExceptedAsm: Boolean = {
-      require(np.isAsmName)
-      asmImplantExcepted.exists(np.startsWith) // 为了兼容`asm.feintSignature()`的`signature.split(tpePrefixClazz)`
-    }
+    @inline def isExceptedAsm: Boolean = np.isAsmName && asmImplantExcepted.exists(np.startsWith)
   }
 
   trait GetPackage {

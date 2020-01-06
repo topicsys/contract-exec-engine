@@ -30,16 +30,13 @@ import systems.topic.lee.lib.ClazzUtil._
 import scala.reflect.ClassTag
 
 /**
-  * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 12/08/2018
-  */
+ * @author Chenai Nakam(chenai.nakam@gmail.com)
+ * @version 1.0, 12/08/2018
+ */
 package object feint extends GetPackage {
   def isFeint[C](implicit tag: ClassTag[C]): Boolean = isFeint(tag.runtimeClass.getName)
 
-  def isFeint(clazzName: String): Boolean = {
-    require(clazzName.isName)
-    clazzName.startsWith(pkgPre)
-  }
+  def isFeint(clazzName: String): Boolean = clazzName.isName && clazzName.startsWith(pkgPre) && clazzName.length > pkgPre.length
 
   def deFeint(clazzName: String): String = if (isFeint(clazzName)) clazzName.substring(pkgPre.length) else clazzName
 
@@ -50,22 +47,18 @@ package object feint extends GetPackage {
   }
 
   object asm {
-    def feint(name: String, check: Boolean = true): String = {
-      if (check) require(name.isAsmName)
-      if (name.startsWith(pkgPrefixJdk) && !name.isExceptedAsm) pkgPrefixFeint + name else name
-    }
+    def feint(name: String): String = if (name.isAsmName && !name.isExceptedAsm) pkgPrefixFeint + name else name
 
     def feintSignature(signature: String, check: Boolean = true): String = {
       if (check) require(signature.isAsmSignature)
       val array: Array[String] = signature.split(tpePrefixClazz)
       // 这种`split`方式无法通过`isAsmName`检查（有空字符串，还有其它符号`$regex4Sig`），但简便高效。
-      array.map(feint(_, check = false)).mkString(tpePrefixClazz)
-    }.ensuring(s => s.startsWith(tpePrefixClazz) || s.startsWith(sigPrefixClazz))
+      val arr = array.filterNot(_.trim.isEmpty)
+      val combine = arr.map(feint).mkString(tpePrefixClazz)
+      if (array(0).trim.isEmpty) tpePrefixClazz + combine else combine
+      }.ensuring(s => s.startsWith(tpePrefixClazz) || s.startsWith(sigPrefixClazz))
 
-    def isFeint(namePath: String): Boolean = {
-      require(namePath.isAsmName)
-      namePath.startsWith(pkgPrefixFeint)
-    }
+    def isFeint(namePath: String): Boolean = namePath.isAsmName && namePath.startsWith(pkgPrefixFeint) && namePath.length > pkgPrefixFeint.length
 
     def deFeint(namePath: String): String = if (isFeint(namePath)) namePath.substring(pkgPrefixFeint.length) else namePath
 

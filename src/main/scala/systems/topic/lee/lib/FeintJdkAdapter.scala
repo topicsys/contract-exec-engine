@@ -24,6 +24,7 @@
 
 package systems.topic.lee.lib
 
+import java.util.concurrent.ConcurrentHashMap
 import hobby.chenai.nakam.basis.TAG
 import hobby.chenai.nakam.lang.J2S.{NonFlat$, NonNull}
 import hobby.wei.c.log.Logger._
@@ -32,16 +33,27 @@ import systems.topic.feint.asm._
 import systems.topic.lee.{logger => log}
 
 /**
-  * 针对 JDK 的类不可以调用`ClassLoader`的`defineClass()`，需要通过伪装的方式更改。
-  *
-  * @author Chenai Nakam(chenai.nakam@gmail.com)
-  * @version 1.0, 12/08/2018
-  */
-class FeintJdkAdapter(cv: ClassVisitor) extends ClassVisitor(Opcodes.ASM6, cv) with TAG.ClassName {
+ * 针对 JDK 的类不可以调用`ClassLoader`的`defineClass()`，需要通过伪装的方式更改。
+ *
+ * @author Chenai Nakam(chenai.nakam@gmail.com)
+ * @version 1.0, 12/08/2018
+ */
+class FeintJdkAdapter(cv: ClassVisitor, mapFeint: ConcurrentHashMap[String, String]) extends ClassVisitor(Opcodes.ASM6, cv) with TAG.ClassName {
   override def visit(version: Int, access: Int, name: String, signature: String, superName: String, interfaces: Array[String]): Unit = {
     log.d("\n--->>> visit(access:%s, name:%s, sign:%s, super:%s, interfaces:%s)", access, name.feint.s,
       (if (signature.isNull) signature else signature.feint).s, superName.feint.s, interfaces.map(_.feint).mkString$.s)
 
     super.visit(version, access, name.feint, if (signature.isNull) signature else signature.feint, superName.feint, interfaces.map(_.feint))
+  }
+
+  override def visitMethod(access: Int, name: String, descriptor: String, signature: String, exceptions: Array[String]) = {
+    log.d("\n--->>> visitMethod(access:%s, name:%s, desc:%s, sign:%s, exceptions:%s)", access, name.s,
+      descriptor.s, signature.s, if(exceptions.isNull) exceptions else exceptions.mkString$.s)
+    super.visitMethod(access, name, descriptor, signature, exceptions)
+  }
+
+  override def visitSource(source: String, debug: String): Unit = {
+    log.d("\n--->>> visitSource(source:%s, debug:%s)", source.s, debug.s)
+    super.visitSource(source, debug)
   }
 }

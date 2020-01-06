@@ -40,6 +40,8 @@ libraryDependencies ++= Seq(
   "com.github.dedge-space" % "scala-lang" % "cc6be80562",
   "com.github.dedge-space" % "reflow" % "a2d3ecea44",
 
+  "org.openjdk.jol" % "jol-core" % "[0.9,)",
+
   "org.scala-sbt" %% "io" % "1.2.0",
 
   "org.ow2.asm" % "asm" % "6.2",
